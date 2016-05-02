@@ -37,11 +37,7 @@ public class ServletDL extends HttpServlet {
     }
 
     
-    public void init( ){
-        // Get the file location where it would be stored.
-        filePath = 
-               getServletContext().getInitParameter("file-upload"); 
-     }
+    
     
 	/**
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
@@ -52,7 +48,7 @@ public class ServletDL extends HttpServlet {
 		//String num = request.getParameter("num");
 		//String checksum = request.getParameter("checksum");
 		
-		response.getWriter().println("num="+request.getParameter("num"));
+		//response.getWriter().println("num="+request.getParameter("num"));
 		
 	
 		 isMultipart = ServletFileUpload.isMultipartContent(request);
@@ -74,7 +70,7 @@ public class ServletDL extends HttpServlet {
 	      // maximum size that will be stored in memory
 	      factory.setSizeThreshold(maxMemSize);
 	      // Location to save data that is larger than maxMemSize.
-	      factory.setRepository(new File("c:\\temp"));
+	      factory.setRepository(new File("c:\\Temp"));
 
 	      // Create a new file upload handler
 	      ServletFileUpload upload = new ServletFileUpload(factory);
@@ -86,48 +82,50 @@ public class ServletDL extends HttpServlet {
 	      List<FileItem> fileItems = upload.parseRequest(new ServletRequestContext(request));
 		
 	      // Process the uploaded file items
-	      Iterator<FileItem> i = fileItems.iterator();
+	      
 
 	      out.println("<html>");
 	      out.println("<head>");
 	      out.println("<title>Servlet upload</title>");  
 	      out.println("</head>");
 	      out.println("<body>");
-	      while ( i.hasNext () ) 
-	      {
-	         FileItem fi = (FileItem)i.next();
-	         if ( !fi.isFormField () )	
-	         {
+	    
+	        // FileItem fi = fileItems.get(0);
+	        
 	            // Get the uploaded file parameters
-	            String fieldName = fi.getFieldName();
-	            String fileName = fi.getName();
-	            String contentType = fi.getContentType();
-	            boolean isInMemory = fi.isInMemory();
-	            long sizeInBytes = fi.getSize();
+	          //  String fieldName = fi.getFieldName();
+	         //   String fileName = fi.getName();
+	           // String contentType = fi.getContentType();
+	           // boolean isInMemory = fi.isInMemory();
+	          //  long sizeInBytes = fi.getSize();
 	            
 	           
 	            // Write the file
+	          /*  filePath = "c:\\";//getServletContext().getInitParameter("file-upload"); 
 	            if( fileName.lastIndexOf("\\") >= 0 ){
 	               file = new File( filePath + 
 	               fileName.substring( fileName.lastIndexOf("\\")));
 	            }else{
 	               file = new File( filePath + 
 	               fileName.substring(fileName.lastIndexOf("\\")+1));
-	            }
-	            fi.write( file ) ;
-	          //  out.println("<h1>Uploaded Filename: " + fileName + "   Size:"+sizeInBytes+"</h1>");
+	            }*/
+	           // file = new File(fileName);
+	          //  if (!file.exists()) {file.createNewFile();}
+	          //  fi.write( file ) ;
+	            out.println("<h1>Uploaded Filename: " + "fileName" + "   Size:"+"sizeInBytes"+"</h1>");
 
-	            response.getWriter().println("checksum="+request.getParameter("checksum"));
-	            InputStream in=fi.getInputStream();
-	            OutputStream outf = new FileOutputStream(new File("c://"+fileName));
+	          //  response.getWriter().println("checksum="+request.getParameter("checksum"));
+	         /*  InputStream in=fi.getInputStream();
+	            OutputStream outf = new FileOutputStream(new File("d://"+fileName));
+	            
 	            byte[] buf=new byte[1024];
 	            int ch;
 	    		while ((ch=in.read(buf))!=-1) {
 	    			outf.write(buf);
 	    		}		
-	    		outf.close();
-	         }
-	      }
+	    		outf.close();*/
+	         
+	      
 	      out.println("</body>");
 	      out.println("</html>");
 	   }catch(Exception ex) {
