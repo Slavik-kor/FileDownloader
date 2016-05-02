@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.tomcat.util.http.fileupload.disk.DiskFileItemFactory;
 import org.apache.tomcat.util.http.fileupload.servlet.ServletFileUpload;
 import org.apache.tomcat.util.http.fileupload.*;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.tomcat.util.http.*;
 import org.apache.tomcat.util.http.fileupload.servlet.*;
 
@@ -45,10 +46,8 @@ public class ServletDL extends HttpServlet {
     
     
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		//String num = request.getParameter("num");
-		//String checksum = request.getParameter("checksum");
 		
-		//response.getWriter().println("num="+request.getParameter("num"));
+		
 		
 	
 		 isMultipart = ServletFileUpload.isMultipartContent(request);
@@ -79,8 +78,7 @@ public class ServletDL extends HttpServlet {
 
 	      try{ 
 	      // Parse the request to get file items.
-	      List<FileItem> fileItems = upload.parseRequest(new ServletRequestContext(request));
-		
+	      	
 	      // Process the uploaded file items
 	      
 
@@ -90,29 +88,28 @@ public class ServletDL extends HttpServlet {
 	      out.println("</head>");
 	      out.println("<body>");
 	    
-	        // FileItem fi = fileItems.get(0);
+	        FileItem fi = upload.parseRequest(new ServletRequestContext(request)).get(0);
 	        
 	            // Get the uploaded file parameters
-	          //  String fieldName = fi.getFieldName();
-	         //   String fileName = fi.getName();
-	           // String contentType = fi.getContentType();
-	           // boolean isInMemory = fi.isInMemory();
-	          //  long sizeInBytes = fi.getSize();
-	            
+	            String fieldName = fi.getFieldName();
+	            String fileName = fi.getName();
+	            String contentType = fi.getContentType();
+	            boolean isInMemory = fi.isInMemory();
+	            long sizeInBytes = fi.getSize();
 	           
+	            
+	            // Get the  parameters of request
+	          String num = request.getParameter("num");
+	    	  String checksum = request.getParameter("checksum");
+	    	  
+	    	  
+	    	  if(checksum.equals(getChecksum(fi,sizeInBytes))){
+	    	  out.println("<h1>OK</h1>");
 	            // Write the file
-	          /*  filePath = "c:\\";//getServletContext().getInitParameter("file-upload"); 
-	            if( fileName.lastIndexOf("\\") >= 0 ){
-	               file = new File( filePath + 
-	               fileName.substring( fileName.lastIndexOf("\\")));
-	            }else{
-	               file = new File( filePath + 
-	               fileName.substring(fileName.lastIndexOf("\\")+1));
-	            }*/
-	           // file = new File(fileName);
-	          //  if (!file.exists()) {file.createNewFile();}
-	          //  fi.write( file ) ;
-	            out.println("<h1>Uploaded Filename: " + "fileName" + "   Size:"+"sizeInBytes"+"</h1>");
+	    	  saveFile(fi,fileName);
+	    	  } else
+	    	  {out.println("<h1>Repeat</h1>");}
+	            
 
 	          //  response.getWriter().println("checksum="+request.getParameter("checksum"));
 	         /*  InputStream in=fi.getInputStream();
@@ -166,6 +163,28 @@ public class ServletDL extends HttpServlet {
 		 "<head> <title>Response</title> </head>\n"+
 		 "<body><h1>Hello world by Slv</h1></body>\n"+
 		"</html>");
+	}
+	
+	private String getChecksum(FileItem fi,long size){
+		InputStream o=null; 
+		String md5 = null;
+		try{
+		 o=fi.getInputStream();
+		int i=(int)size;
+		byte[] f=new byte[i];
+		o.read(f);
+		o.close();
+		md5=DigestUtils.md5Hex(f);
+		} catch (Exception e) {e.printStackTrace();}
+		return md5;
+	}
+	
+	
+	private void saveFile(FileItem fi, String fileName){
+		try
+		{file = new File("d:\\slv\\"+fileName);
+         fi.write( file );}
+		catch(Exception e) {e.printStackTrace();}
 	}
 	
 
