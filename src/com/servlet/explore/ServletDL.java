@@ -134,7 +134,7 @@ public class ServletDL extends HttpServlet {
 	
 	private void saveFile(byte[] data) throws Exception{
 	   // Create Zip file
-	   File zip=new File("c:\\tmp.zip");
+	   File zip=new File("c:\\Temp\\tmp.zip");
 	   if(!zip.exists()){zip.createNewFile();}
 	  
 	  
@@ -191,7 +191,7 @@ public class ServletDL extends HttpServlet {
 		  inz.close();
 		   outf.close();	  
 		   zipArch.close();
-		   zip.deleteOnExit();
+		   zip.delete();
 		 
 	   }
 		
