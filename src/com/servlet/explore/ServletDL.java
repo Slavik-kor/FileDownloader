@@ -1,10 +1,9 @@
 package com.servlet.explore;
 
 import java.io.*;
-import java.util.*;
+import java.util.zip.*;
 
 import javax.servlet.ServletException;
-import javax.servlet.ServletInputStream;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -14,8 +13,8 @@ import org.apache.tomcat.util.http.fileupload.disk.DiskFileItemFactory;
 import org.apache.tomcat.util.http.fileupload.servlet.ServletFileUpload;
 import org.apache.tomcat.util.http.fileupload.*;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.tomcat.util.http.*;
 import org.apache.tomcat.util.http.fileupload.servlet.*;
+import org.apache.commons.codec.binary.Base64;
 
 /**
  * Servlet implementation class ServletDL
@@ -24,20 +23,17 @@ import org.apache.tomcat.util.http.fileupload.servlet.*;
 public class ServletDL extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private boolean isMultipart;
-	   private String filePath;
-	   private int maxFileSize = 50 * 1024*1024;
+	   private int maxFileSize = 100 * 1024*1024;
 	   private int maxMemSize = 4 * 1024;
-	   private File file;
-       
-    /**
-     * @see HttpServlet#HttpServlet()
-     */
-    public ServletDL() {
-        super();
-        // TODO Auto-generated constructor stub
-    }
-
-    
+       private String fileName;
+       private long sizeInBytes;
+       private String num;
+       private String checksum;
+       private boolean isLast;
+       private  int amount=0;
+       private byte[] dataBase64;
+       private byte[] data;
+        
     
     
 	/**
@@ -46,8 +42,6 @@ public class ServletDL extends HttpServlet {
     
     
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		
-		
 		
 	
 		 isMultipart = ServletFileUpload.isMultipartContent(request);
@@ -77,10 +71,8 @@ public class ServletDL extends HttpServlet {
 	      upload.setSizeMax(maxFileSize);
 
 	      try{ 
-	      // Parse the request to get file items.
-	      	
-	      // Process the uploaded file items
 	      
+	      // Process the uploaded file items
 
 	      out.println("<html>");
 	      out.println("<head>");
@@ -89,71 +81,41 @@ public class ServletDL extends HttpServlet {
 	      out.println("<body>");
 	    
 	        FileItem fi = upload.parseRequest(new ServletRequestContext(request)).get(0);
+	        	 
 	        
-	            // Get the uploaded file parameters
-	            String fieldName = fi.getFieldName();
-	            String fileName = fi.getName();
-	            String contentType = fi.getContentType();
-	            boolean isInMemory = fi.isInMemory();
-	            long sizeInBytes = fi.getSize();
-	           
-	            
+	             fileName = fi.getName();
+	             sizeInBytes = fi.getSize();
+	           	            
 	            // Get the  parameters of request
-	          String num = request.getParameter("num");
-	    	  String checksum = request.getParameter("checksum");
-	    	  
-	    	  
-	    	  if(checksum.equals(getChecksum(fi,sizeInBytes))){
+	           num = request.getParameter("num");
+	    	   checksum = request.getParameter("checksum");
+	    	   isLast=new Boolean(request.getParameter("isLast")).booleanValue();	
+	    	   
+	        InputStream o=null; 
+	   		try{
+	   		 o=fi.getInputStream();
+	   		int i=(int)sizeInBytes;
+	   		dataBase64=new byte[i];
+	   		o.read(dataBase64);
+	   		o.close();} catch (Exception e){e.printStackTrace();}
+	   		// decoding 
+	   		data=Base64.decodeBase64(dataBase64);
+	    	   
+	    	  if(checksum.equalsIgnoreCase(getChecksum(data))){
 	    	  out.println("<h1>OK</h1>");
 	            // Write the file
-	    	  saveFile(fi,fileName);
+	    	 try{ saveFile(data);} catch (Exception e){e.printStackTrace();}
 	    	  } else
-	    	  {out.println("<h1>Repeat</h1>");}
+	    	  {out.println("<h1>Repeat</h1>");
+	    	  out.println("<h1>"+checksum+"!="+getChecksum(data)+"</h1>");
+	    	  }
 	            
-
-	          //  response.getWriter().println("checksum="+request.getParameter("checksum"));
-	         /*  InputStream in=fi.getInputStream();
-	            OutputStream outf = new FileOutputStream(new File("d://"+fileName));
-	            
-	            byte[] buf=new byte[1024];
-	            int ch;
-	    		while ((ch=in.read(buf))!=-1) {
-	    			outf.write(buf);
-	    		}		
-	    		outf.close();*/
-	         
-	      
 	      out.println("</body>");
 	      out.println("</html>");
 	   }catch(Exception ex) {
 	       System.out.println(ex);
 	   }
-	   
 		
-	
-		/*ServletInputStream in= request.getInputStream();
-		File file=new File("c://Users//Korotkiy//workspace//Download//File.tif");
-		FileOutputStream out=new FileOutputStream(file);
-		if(!file.exists()){file.createNewFile();}
-		byte[] buf=new byte[1024*1024];
-		int ch;
-		Base64.Decoder dec= Base64.getDecoder();
-		while ((ch=in.read(buf))!=-1) {
-			out.write(dec.decode(buf));
-		}		
-		out.close();
-		*/
-		
-	//	String num=request.getParameterValues("num");
-	//	String checksum=request.getParameterValues("checksum");
-	//	String[] name=request.getParameterValues("isLast");
-	//	String[] data=request.getParameterValues("data");
-		
-		
-	//	GetInfoDL();
-		
-		
-		//doGet(request,response);
 	}
 	
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -161,30 +123,78 @@ public class ServletDL extends HttpServlet {
 		out.println("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \n"+
 		"<html>\n"+
 		 "<head> <title>Response</title> </head>\n"+
-		 "<body><h1>Hello world by Slv</h1></body>\n"+
+		 "<body><h1>Test</h1></body>\n"+
 		"</html>");
 	}
 	
-	private String getChecksum(FileItem fi,long size){
-		InputStream o=null; 
-		String md5 = null;
-		try{
-		 o=fi.getInputStream();
-		int i=(int)size;
-		byte[] f=new byte[i];
-		o.read(f);
-		o.close();
-		md5=DigestUtils.md5Hex(f);
-		} catch (Exception e) {e.printStackTrace();}
-		return md5;
+	private String getChecksum(byte[] f){
+		return DigestUtils.md5Hex(f);
 	}
 	
 	
-	private void saveFile(FileItem fi, String fileName){
-		try
-		{file = new File("d:\\slv\\"+fileName);
-         fi.write( file );}
-		catch(Exception e) {e.printStackTrace();}
+	private void saveFile(byte[] data) throws Exception{
+	   // Create Zip file
+	   File zip=new File("c:\\tmp.zip");
+	   if(!zip.exists()){zip.createNewFile();}
+	  
+	  
+	   //Create Zip entry
+	   ZipEntry entry;
+	   if(isLast){entry=new ZipEntry(num+"last");
+	   }else {entry=new ZipEntry(num);}
+	   
+	   // Record Zip Entry
+	   ZipOutputStream out= new ZipOutputStream(new FileOutputStream(zip));
+	   out.putNextEntry(entry);
+	   out.write(data);
+	   out.closeEntry();
+	   out.close();
+	   
+	    ZipFile zipArch= new ZipFile(zip);
+	    
+	   // Finding entry with "last"
+	   ZipInputStream in=new ZipInputStream(new FileInputStream(zip));
+	   entry=null; 
+	   while((entry=in.getNextEntry())!=null) {
+		   if(entry.getName().endsWith("last")){
+			   amount=Integer.parseInt(entry.getName().replaceAll("last", ""));
+			   break;
+		   }
+	   }
+	   in.closeEntry();
+	   in.close();
+	   
+	   // Checking out of ready to gather
+	   if((amount!=0)&&(zipArch.size()==amount)){
+		   File f=new File("c:\\"+fileName);
+		   f.createNewFile();
+		   		   
+		   //Gathering all zip entries
+		   ZipInputStream inz= new ZipInputStream(new FileInputStream(zip));
+		   FileOutputStream outf=new FileOutputStream(f);
+		   ZipEntry ent=null; int b=1024; 
+		  for(int i=0;i<amount;i++){
+		if (i==amount-1){ent=zipArch.getEntry(Integer.toString(i+1)+"last");
+		}else{
+			 ent=zipArch.getEntry(Integer.toString(i+1));
+		}
+				   byte[] buf=new byte[b]; int ch;
+				   InputStream inEntry=zipArch.getInputStream(ent);
+				   while ((ch=inEntry.read(buf))!=-1) {
+						outf.write(buf,0,ch);
+					}				   
+				   inEntry.close();  
+				
+			   inz.closeEntry();  	
+	   }
+		  	    
+		  inz.close();
+		   outf.close();	  
+		   zipArch.close();
+		   zip.deleteOnExit();
+		 
+	   }
+		
 	}
 	
 
