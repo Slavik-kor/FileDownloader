@@ -71,18 +71,9 @@ public class ServletDL extends HttpServlet {
 	      upload.setSizeMax(maxFileSize);
 
 	      try{ 
-	      
-	      // Process the uploaded file items
-
-	      out.println("<html>");
-	      out.println("<head>");
-	      out.println("<title>Servlet upload</title>");  
-	      out.println("</head>");
-	      out.println("<body>");
-	    
+	 	    
 	        FileItem fi = upload.parseRequest(new ServletRequestContext(request)).get(0);
-	        	 
-	        
+	        	 	        
 	             fileName = fi.getName();
 	             sizeInBytes = fi.getSize();
 	           	            
@@ -98,20 +89,18 @@ public class ServletDL extends HttpServlet {
 	   		dataBase64=new byte[i];
 	   		o.read(dataBase64);
 	   		o.close();} catch (Exception e){e.printStackTrace();}
+	   	
 	   		// decoding 
 	   		data=Base64.decodeBase64(dataBase64);
 	    	   
-	    	  if(checksum.equalsIgnoreCase(getChecksum(data))){
-	    	  out.println("<h1>OK</h1>");
+	    	  if(checksum.equalsIgnoreCase(DigestUtils.md5Hex(data))){
+	    	  out.println("OK");
+	    	  
 	            // Write the file
 	    	 try{ saveFile(data);} catch (Exception e){e.printStackTrace();}
 	    	  } else
-	    	  {out.println("<h1>Repeat</h1>");
-	    	  out.println("<h1>"+checksum+"!="+getChecksum(data)+"</h1>");
-	    	  }
-	            
-	      out.println("</body>");
-	      out.println("</html>");
+	    	  {out.println("Repeat"); }
+	         
 	   }catch(Exception ex) {
 	       System.out.println(ex);
 	   }
@@ -127,16 +116,11 @@ public class ServletDL extends HttpServlet {
 		"</html>");
 	}
 	
-	private String getChecksum(byte[] f){
-		return DigestUtils.md5Hex(f);
-	}
-	
 	
 	private void saveFile(byte[] data) throws Exception{
 	   // Create Zip file
 	   File zip=new File("c:\\Temp\\tmp.zip");
 	   if(!zip.exists()){zip.createNewFile();}
-	  
 	  
 	   //Create Zip entry
 	   ZipEntry entry;
